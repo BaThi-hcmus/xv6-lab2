@@ -91,3 +91,12 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+uint64
+sys_trace(void)
+{
+  int mask;
+  argint(0, &mask);            // Lấy đối số thứ 0 (a0) từ trapframe
+  myproc()->tracemask = mask;  // Lưu vào tiến trình đang gọi
+  return 0;
+}
