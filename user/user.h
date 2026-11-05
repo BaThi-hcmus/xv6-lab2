@@ -23,6 +23,8 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 int trace(int);
+struct ptreeinfo;
+int ptree(struct ptreeinfo *buf, int max);
 
 // ulib.c
 int stat(const char*, struct stat*);
