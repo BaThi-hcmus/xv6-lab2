@@ -1,4 +1,5 @@
 struct stat;
+struct sysinfo;
 
 // system calls
 int fork(void);
@@ -25,6 +26,7 @@ int uptime(void);
 int trace(int);
 struct ptreeinfo;
 int ptree(struct ptreeinfo *buf, int max);
+int sysinfo(struct sysinfo *);
 
 // ulib.c
 int stat(const char*, struct stat*);

@@ -80,3 +80,22 @@ kalloc(void)
     memset((char*)r, 5, PGSIZE); // fill with junk
   return (void*)r;
 }
+
+uint64
+kcollect_freemem(void)
+{
+  struct run *r;          // Con trỏ dùng để duyệt danh sách liên kết
+  uint64 free_bytes = 0;  // Biến lưu tổng số byte trống, khởi tạo bằng 0
+
+  acquire(&kmem.lock);    // Khóa spinlock bảo vệ cấu trúc kmem
+  
+  r = kmem.freelist;      // Bắt đầu từ trang trống đầu tiên trong danh sách
+  while(r){               // Lặp chừng nào con trỏ r còn trỏ tới một trang hợp lệ (khác 0)
+    free_bytes += PGSIZE; // Mỗi trang trống tương ứng 4096 bytes (PGSIZE)
+    r = r->next;          // Di chuyển sang trang trống tiếp theo trong danh sách
+  }
+  
+  release(&kmem.lock);    // Mở khóa spinlock sau khi đã duyệt xong
+
+  return free_bytes;      // Trả về tổng số byte bộ nhớ trống
+}

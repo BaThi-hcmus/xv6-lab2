@@ -734,3 +734,22 @@ int get_ptree(uint64 buf_addr, int max) {
     release(&wait_lock);
     return count; // Trả về số lượng tiến trình đã copy thành công
 }
+
+
+uint64
+count_active_procs(void)
+{
+  struct proc *p;          // Con trỏ duyệt qua mảng tiến trình
+  uint64 count = 0;        // Biến đếm số tiến trình đang hoạt động
+
+  // Lệnh 3: Duyệt từ phần tử đầu tiên (proc) đến phần tử cuối cùng (&proc[NPROC])
+  for(p = proc; p < &proc[NPROC]; p++){
+    acquire(&p->lock);     // Khóa riêng tiến trình p đang xét
+    if(p->state != UNUSED){// Kiểm tra nếu trạng thái không phải là UNUSED
+      count++;             // Tăng số lượng tiến trình đang hoạt động lên 1
+    }
+    release(&p->lock);     // Mở khóa tiến trình p
+  }
+
+  return count;            // Trả về tổng số tiến trình đếm được
+}
