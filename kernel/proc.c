@@ -5,6 +5,7 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "defs.h"
+#include "ptree.h"
 
 struct cpu cpus[NCPU];
 
@@ -694,4 +695,42 @@ procdump(void)
     printf("%d %s %s", p->pid, state, p->name);
     printf("\n");
   }
+}
+
+int get_ptree(uint64 buf_addr, int max) {
+    struct proc *p;
+    struct ptreeinfo info;
+    int count = 0;
+
+    // Bắt lỗi nếu người dùng truyền max <= 0
+    if (max <= 0) return -1;
+
+    acquire(&wait_lock);
+
+    // Duyệt qua toàn bộ mảng proc (chứa tất cả tiến trình của hệ thống)
+    for(p = proc; p < &proc[NPROC] && count < max; p++) {
+        acquire(&p->lock); // Khóa tiến trình lại để đọc cho an toàn
+
+        // Chỉ lấy những tiến trình đang được sử dụng
+        if(p->state != UNUSED) {
+            info.pid = p->pid;
+            // Nếu tiến trình có cha thì lấy pid của cha, nếu không thì gán bằng 0
+            info.ppid = (p->parent) ? p->parent->pid : 0;
+            info.state = p->state;
+            info.memsize = p->sz;
+            safestrcpy(info.name, p->name, sizeof(info.name));
+
+            // Chép dữ liệu từ Kernel ra ngoài User Space một cách an toàn
+            if(copyout(myproc()->pagetable, buf_addr + count * sizeof(struct ptreeinfo), (char *)&info, sizeof(info)) < 0) {
+                release(&p->lock); // Nhớ mở khóa trước khi thoát vì lỗi
+                release(&wait_lock);
+                return -1;
+            }
+            count++;
+        }
+        release(&p->lock); // Mở khóa sau khi đọc xong
+    }
+
+    release(&wait_lock);
+    return count; // Trả về số lượng tiến trình đã copy thành công
 }

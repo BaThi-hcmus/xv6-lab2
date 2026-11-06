@@ -100,3 +100,14 @@ sys_trace(void)
   myproc()->tracemask = mask;  // Lưu vào tiến trình đang gọi
   return 0;
 }
+
+uint64 sys_ptree(void) {
+    uint64 buf_addr;
+    int max;
+
+    argaddr(0, &buf_addr);
+    argint(1, &max);
+
+    // Gọi hàm get_ptree
+    return get_ptree(buf_addr, max);
+}
