@@ -5,6 +5,7 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
+#include "sysinfo.h"
 
 uint64
 sys_exit(void)
@@ -110,4 +111,25 @@ uint64 sys_ptree(void) {
 
     // Gọi hàm get_ptree
     return get_ptree(buf_addr, max);
+}
+
+uint64
+sys_sysinfo(void)
+{
+  struct proc *p = myproc(); // Lấy con trỏ cấu trúc của tiến trình đang gọi syscall
+  struct sysinfo info;       // Khai báo biến struct sysinfo 
+  uint64 addr;               // Biến lưu địa chỉ ảo do người dùng truyền vào
+
+  // Đọc đối số thứ nhất lưu vào biến addr
+  argaddr(0, &addr);
+
+  // Thu thập thông tin hệ thống và gán vào biến tạm của Kernel
+  info.freemem = kcollect_freemem();
+  info.nproc = count_active_procs();
+
+  // Sao chép dữ liệu từ biến 'info' (Kernel) sang địa chỉ ảo 'addr' (User)
+  if(copyout(p->pagetable, addr, (char *)&info, sizeof(info)) < 0)
+    return -1; // Trả về -1 báo hiệu thực thi thất bại
+
+  return 0; // Trả về 0 báo hiệu thực thi thành công
 }
