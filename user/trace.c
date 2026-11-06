@@ -10,13 +10,13 @@ int main(int argc, char *argv[]) {
     fprintf(2, "Usage: %s mask command\n", argv[0]);
     exit(1);
   }
-  if(trace(atoi(argv[1])) < 0){            // Bật trace cho chính tiến trình này
+  if(trace(atoi(argv[1])) < 0){ // Bật trace cho chính tiến trình này
     fprintf(2, "%s: trace failed\n", argv[0]);
     exit(1);
   }
   for(int i = 2; i < argc && i < MAXARG; i++)
     nargv[i-2] = argv[i];
-  exec(nargv[0], nargv);                   // Thay bằng chương trình cần theo dõi
+  exec(nargv[0], nargv); // Thay bằng chương trình cần theo dõi
   fprintf(2, "%s: exec failed\n", argv[0]);
   exit(1);
 }
